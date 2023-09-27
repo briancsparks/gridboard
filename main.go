@@ -17,7 +17,7 @@ func main() {
 
     screen.Clear()
 
-    quit := make(chan bool)
+    //quit := make(chan bool)
     chans := makeChans()
 
     go readFifo(chans)
@@ -25,7 +25,7 @@ func main() {
     go func() {
         for {
             select {
-            case <-quit:
+            case <-chans.quit:
                 return
 
             case cell := <- chans.cell:
@@ -51,7 +51,7 @@ func main() {
         switch ev := ev.(type) {
         case *tcell.EventKey:
             if ev.Key() == tcell.KeyEscape || ev.Rune() == 'q' {
-                close(quit)
+                close(chans.quit)
                 return
             }
             if ev.Key() == tcell.KeyCtrlL {
