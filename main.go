@@ -6,7 +6,7 @@ import (
 
 func main() {
 
-    width, height := 30, 40
+    width, height := 40, 40
 
     screen, err := tcell.NewScreen()
     if err != nil {
@@ -17,8 +17,8 @@ func main() {
     }
     defer screen.Fini()
 
-    layers := makeLayers(width, height)
-    _ = layers
+    layers := makeLayers(width, height, screen)
+    //_ = layers
 
     screen.Clear()
 
@@ -34,19 +34,7 @@ func main() {
                 return
 
             case cell := <- chans.cell:
-                //layers.setAt(cell)
-                style := tcell.StyleDefault
-
-                color, err := colorCode(cell.Color)
-                if err == nil {
-                    style = style.Foreground(color)
-                }
-
-                screen.SetCell(cell.X, cell.Y, style, cell.Sym)
-
-                if cell.Redraw {
-                    screen.Show()
-                }
+                layers.setAt(cell)
             }
         }
     }()

@@ -31,6 +31,13 @@ func (l Layer) at(x, y int) *Cell {
 }
 
 func (l Layer) setAt(c Cell) *Cell {
+    if c.X >= len(l.cells) {
+        return nil
+    }
+    if c.Y >= len(l.cells[0]) {
+        return nil
+    }
+
     l.cells[c.X][c.Y] = c
     return l.at(c.X, c.Y)
 }
