@@ -6,7 +6,7 @@ import (
     "os"
 )
 
-func readFifo(line chan string, chans *Chans) {
+func readFifo(chans *Chans) {
     for {
         f, err := os.OpenFile("/tmp/termgridboard", os.O_RDONLY, 0600)
         if err != nil {

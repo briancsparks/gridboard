@@ -18,10 +18,9 @@ func main() {
     screen.Clear()
 
     quit := make(chan bool)
-    line := make(chan string, 100)
     chans := makeChans()
 
-    go readFifo(line, chans)
+    go readFifo(chans)
 
     go func() {
         for {
