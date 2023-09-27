@@ -15,3 +15,7 @@
   - Should be sending the initial state of the grid in the beginning, but
     then only sending diffs when events happen in the logic.
 - Should send which cells are 'examined', when the robot looks in a direction.
+
+
+
+

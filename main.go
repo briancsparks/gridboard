@@ -9,70 +9,69 @@ import (
 )
 
 type Cell struct {
-	X   int  `json:"x"`
-	Y   int  `json:"y"`
-	Sym rune `json:"sym"`
-	Color  string `json:"color"`
-	Redraw bool   `json:"redraw"`
+    X      int    `json:"x"`
+    Y      int    `json:"y"`
+    Sym    rune   `json:"sym"`
+    Color  string `json:"color"`
+    Redraw bool   `json:"redraw"`
 }
 
 func readFifo(line chan string) {
-	for {
-    f, err := os.OpenFile("/tmp/termgridboard", os.O_RDONLY, 0600)
-    if err != nil {
-      panic(err)
-    }
+    for {
+        f, err := os.OpenFile("/tmp/termgridboard", os.O_RDONLY, 0600)
+        if err != nil {
+            panic(err)
+        }
 
-    scanner := bufio.NewScanner(f)
-    for scanner.Scan() {
-      line <- scanner.Text()
+        scanner := bufio.NewScanner(f)
+        for scanner.Scan() {
+            line <- scanner.Text()
+        }
+        f.Close()
     }
-    f.Close()
-	}
 }
 
-
 func main() {
-	fmt.Println("Hello, World!")
+    fmt.Println("Hello, World!")
 
-	screen, err := tcell.NewScreen()
-	if err != nil {
-		panic(err)
-	}
-	if err := screen.Init(); err != nil {
-		panic(err)
-	}
-	defer screen.Fini()
+    screen, err := tcell.NewScreen()
+    if err != nil {
+        panic(err)
+    }
+    if err := screen.Init(); err != nil {
+        panic(err)
+    }
+    defer screen.Fini()
 
-	screen.Clear()
+    screen.Clear()
 
-	f, err := os.OpenFile("/tmp/termgridboard", os.O_RDONLY, 0600)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
+    f, err := os.OpenFile("/tmp/termgridboard", os.O_RDONLY, 0600)
+    if err != nil {
+        panic(err)
+    }
+    defer f.Close()
 
-	quit := make(chan bool)
-	line := make(chan string, 100)
+    quit := make(chan bool)
+    line := make(chan string, 100)
 
     go readFifo(line)
 
     problemJson := ""
 
-	go func() {
-		for {
-			select {
-			case <-quit:
-				return
+    go func() {
+        for {
+            select {
+            case <-quit:
+                return
 
-			case l := <-line:
-				var cell Cell
-				if err := json.Unmarshal([]byte(l), &cell); err != nil {
+            case l := <-line:
+                var cell Cell
+                if err := json.Unmarshal([]byte(l), &cell); err != nil {
                     problemJson = l
-					continue // Skip invalid JSON
-				}
+                    continue // Skip invalid JSON
+                }
 
-				if cell.X >= 0 && cell.Y >= 0 {
+                if cell.X >= 0 && cell.Y >= 0 {
                     style := tcell.StyleDefault
 
                     color, err := colorCode(cell.Color)
@@ -80,38 +79,36 @@ func main() {
                         style = style.Foreground(color)
                     }
 
-					screen.SetCell(cell.X, cell.Y, style, rune(cell.Sym))
-				}
+                    screen.SetCell(cell.X, cell.Y, style, rune(cell.Sym))
+                }
 
-				if cell.Redraw {
-					screen.Show()
-				}
-			}
-		}
-	}()
+                if cell.Redraw {
+                    screen.Show()
+                }
+            }
+        }
+    }()
 
-	// Block, waiting for input from the user
-	for {
-		ev := screen.PollEvent()
-		switch ev := ev.(type) {
-		case *tcell.EventKey:
-			if ev.Key() == tcell.KeyEscape || ev.Rune() == 'q' {
+    // Block, waiting for input from the user
+    for {
+        ev := screen.PollEvent()
+        switch ev := ev.(type) {
+        case *tcell.EventKey:
+            if ev.Key() == tcell.KeyEscape || ev.Rune() == 'q' {
                 fmt.Print("Problem JSON: ")
                 fmt.Println(problemJson)
-				close(quit)
-				return
-			}
+                close(quit)
+                return
+            }
             if ev.Key() == tcell.KeyCtrlL {
                 screen.Sync()
             }
         case *tcell.EventResize:
             screen.Sync()
-		}
-	}
+        }
+    }
 
 }
-
-
 
 func colorCode(name string) (tcell.Color, error) {
     if name == "red" {
