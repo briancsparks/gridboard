@@ -16,7 +16,19 @@ type Cell struct {
     Redraw bool   `json:"redraw"`
 }
 
-func readFifo(line chan string) {
+type Chans struct {
+    cell chan Cell
+}
+
+func makeChans() *Chans {
+    var c Chans
+
+    c.cell = make(chan Cell, 100)
+
+    return &c
+}
+
+func readFifo(line chan string, chans *Chans) {
     for {
         f, err := os.OpenFile("/tmp/termgridboard", os.O_RDONLY, 0600)
         if err != nil {
@@ -25,7 +37,15 @@ func readFifo(line chan string) {
 
         scanner := bufio.NewScanner(f)
         for scanner.Scan() {
-            line <- scanner.Text()
+            text := scanner.Text()
+
+            var cell Cell
+            if err := json.Unmarshal([]byte(text), &cell); err != nil {
+                continue // Skip invalid JSON
+            }
+
+            //line <- text
+            chans.cell <- cell
         }
         f.Close()
     }
@@ -53,8 +73,9 @@ func main() {
 
     quit := make(chan bool)
     line := make(chan string, 100)
+    chans := makeChans()
 
-    go readFifo(line)
+    go readFifo(line, chans)
 
     problemJson := ""
 
@@ -67,8 +88,8 @@ func main() {
             case l := <-line:
                 var cell Cell
                 if err := json.Unmarshal([]byte(l), &cell); err != nil {
-                    problemJson = l
-                    continue // Skip invalid JSON
+                   problemJson = l
+                   continue // Skip invalid JSON
                 }
 
                 if cell.X >= 0 && cell.Y >= 0 {
@@ -81,6 +102,20 @@ func main() {
 
                     screen.SetCell(cell.X, cell.Y, style, rune(cell.Sym))
                 }
+
+                if cell.Redraw {
+                    screen.Show()
+                }
+
+            case cell := <- chans.cell:
+                style := tcell.StyleDefault
+
+                color, err := colorCode(cell.Color)
+                if err == nil {
+                    style = style.Foreground(color)
+                }
+
+                screen.SetCell(cell.X, cell.Y, style, cell.Sym)
 
                 if cell.Redraw {
                     screen.Show()
