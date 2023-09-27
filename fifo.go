@@ -21,6 +21,7 @@ func readFifo(chans *Chans) {
             if err := json.Unmarshal([]byte(text), &cell); err != nil {
                 continue // Skip invalid JSON
             }
+            cell.flags = fAll
 
             //line <- text
             chans.cell <- cell
