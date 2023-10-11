@@ -1,10 +1,11 @@
-package main
+package termgridboard
 
 import (
+    "github.com/briancsparks/termgridboard/internal/grid"
     "github.com/gdamore/tcell/v2"
 )
 
-func main() {
+func Run() {
 
     width, height := 40, 40
 
@@ -17,24 +18,24 @@ func main() {
     }
     defer screen.Fini()
 
-    layers := makeLayers(width, height, screen)
+    layers := grid.MakeLayers(width, height, screen)
     //_ = layers
 
     screen.Clear()
 
     //quit := make(chan bool)
-    chans := makeChans()
+    chans := grid.MakeChans()
 
-    go readFifo(chans)
+    go grid.ReadFifo(chans)
 
     go func() {
         for {
             select {
-            case <-chans.quit:
+            case <-chans.Quit:
                 return
 
-            case cell := <- chans.cell:
-                layers.setAt(cell)
+            case cell := <- chans.Cell:
+                layers.SetAt(cell)
             }
         }
     }()
@@ -45,7 +46,7 @@ func main() {
         switch ev := ev.(type) {
         case *tcell.EventKey:
             if ev.Key() == tcell.KeyEscape || ev.Rune() == 'q' {
-                close(chans.quit)
+                close(chans.Quit)
                 return
             }
             if ev.Key() == tcell.KeyCtrlL {

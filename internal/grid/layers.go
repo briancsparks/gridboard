@@ -1,4 +1,4 @@
-package main
+package grid
 
 import (
     "github.com/gdamore/tcell/v2"
@@ -13,7 +13,7 @@ type Layers struct {
     screen  tcell.Screen
 }
 
-func makeLayers(rows, cols int, sc tcell.Screen) *Layers {
+func MakeLayers(rows, cols int, sc tcell.Screen) *Layers {
     l := makeLayer(rows, cols)
 
     var ls = Layers{
@@ -27,7 +27,7 @@ func makeLayers(rows, cols int, sc tcell.Screen) *Layers {
     return &ls
 }
 
-func (l Layers) setAt(cin Cell) *Cell {
+func (l Layers) SetAt(cin Cell) *Cell {
     c := l.active.setAt(cin)
     if c == nil {
         return c

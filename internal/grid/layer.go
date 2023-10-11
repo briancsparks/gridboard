@@ -1,4 +1,4 @@
-package main
+package grid
 
 type Layer struct {
     cells [][]Cell

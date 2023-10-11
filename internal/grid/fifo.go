@@ -1,4 +1,4 @@
-package main
+package grid
 
 import (
     "bufio"
@@ -6,7 +6,7 @@ import (
     "os"
 )
 
-func readFifo(chans *Chans) {
+func ReadFifo(chans *Chans) {
     for {
         f, err := os.OpenFile("/tmp/termgridboard", os.O_RDONLY, 0600)
         if err != nil {
@@ -24,7 +24,7 @@ func readFifo(chans *Chans) {
             cell.flags = fAll
 
             //line <- text
-            chans.cell <- cell
+            chans.Cell <- cell
         }
         f.Close()
     }

@@ -1,4 +1,4 @@
-package main
+package grid
 
 const (
     fX = 1 << iota
